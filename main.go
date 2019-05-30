@@ -87,7 +87,7 @@ func main() {
 	ok := func(w http.ResponseWriter, _ *http.Request) { io.WriteString(w, "OK\n") }
 
 	http.HandleFunc("/", ok)
-	http.HandleFunc("/ready", health) // TODO(tvi): Swap over.
+	http.HandleFunc("/ready", ready) // TODO(tvi): Swap over.
 	http.HandleFunc("/health", health)
 
 	// TODO(tvi): Make bindAddr configurable.
