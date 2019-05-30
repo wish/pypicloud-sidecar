@@ -50,6 +50,7 @@ func ready(w http.ResponseWriter, _ *http.Request) {
 func health(w http.ResponseWriter, _ *http.Request) {
 	err := reload()
 	if err != nil {
+		log.Printf("got error: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
