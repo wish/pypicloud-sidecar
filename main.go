@@ -9,13 +9,15 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 )
 
 var (
-	username = ""
-	password = ""
-
-	adminURL = ""
+	username       = ""
+	password       = ""
+	rebuildTimeout = 60
+	adminURL       = ""
 
 	// TODO(tvi): Add metrics for last fetch.
 )
@@ -31,13 +33,17 @@ func reload() error {
 	req, err := http.NewRequest("GET", adminURL, nil)
 	req.Header.Add("Authorization", "Basic "+basicAuth(username, password))
 
-	resp, err := http.DefaultClient.Do(req)
+	timeout := time.Duration(rebuildTimeout) * time.Second
+	client := http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
 		b, _ := httputil.DumpResponse(resp, true)
-		return fmt.Errorf("wrong status: %v", string(b))
+		return fmt.Errorf("Wrong Status: %v", string(b))
 	}
 	return nil
 }
@@ -50,7 +56,7 @@ func ready(w http.ResponseWriter, _ *http.Request) {
 func health(w http.ResponseWriter, _ *http.Request) {
 	err := reload()
 	if err != nil {
-		log.Printf("got error: %v\n", err)
+		log.Printf("Got error: %v\n", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -70,14 +76,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(os.Args) < 2 {
-		log.Printf("usage: sidecar <pypicloud-url>\n")
+	if len(os.Args) < 3 {
+		log.Printf("Usage: sidecar <pypicloud-url> <rebuild-timeout>\n")
 		os.Exit(1)
 	}
 
 	u, err := url.Parse(os.Args[1])
 	if err != nil {
-		log.Printf("error: %v\n", err)
+		log.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	rebuildTimeout, err = strconv.Atoi(os.Args[2])
+	if err != nil {
+		log.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -91,6 +103,6 @@ func main() {
 	http.HandleFunc("/health", health)
 
 	// TODO(tvi): Make bindAddr configurable.
-	log.Printf("Listerning on :8100\n")
+	log.Printf("Listening on :8100\n")
 	log.Fatal(http.ListenAndServe(":8100", nil))
 }
