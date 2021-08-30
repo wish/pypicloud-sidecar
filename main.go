@@ -16,7 +16,7 @@ import (
 var (
 	username       = ""
 	password       = ""
-	rebuildTimeout = 60
+	rebuildTimeout = 180
 	adminURL       = ""
 
 	// TODO(tvi): Add metrics for last fetch.
@@ -37,14 +37,19 @@ func reload() error {
 	client := http.Client{
 		Timeout: timeout,
 	}
+	start := time.Now()
 	resp, err := client.Do(req)
+	callDuration := time.Since(start)
 	if err != nil {
+		log.Printf("http call error with execution time: %v\n", callDuration)
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("http call wrong status with execution time: %v\n", callDuration)
 		b, _ := httputil.DumpResponse(resp, true)
 		return fmt.Errorf("Wrong Status: %v", string(b))
 	}
+	log.Printf("http call success with execution time: %v\n", callDuration)
 	return nil
 }
 
