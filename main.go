@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -69,20 +70,35 @@ func health(w http.ResponseWriter, _ *http.Request) {
 	io.WriteString(w, "OK\n")
 }
 
-func readVaultData() {
+func readVaultData() (string, string, error) {
 	jsonFile, err := os.Open("/volume/vault/secrets.json")
 	if err != nil {
 		log.Println(err)
-		return
+		return "", "", err
 	}
 	log.Println("Successfully opened secrets.json")
 	defer jsonFile.Close()
 	b, err := ioutil.ReadAll(jsonFile)
-	log.Println(string(b))
+	if err != nil {
+		return "", "", err
+	}
+	var result map[string]interface{}
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return "", "", err
+	}
+	data := result["data"].(map[string]interface{})
+	return data["pypicloud-user"].(string), data["pypicloud-pass"].(string), nil
 }
 
 func main() {
-	readVaultData()
+	username, password, err := readVaultData()
+	if err != nil {
+		log.Printf("%v", err)
+		os.Exit(1)
+	}
+	log.Printf("--%s--\n", username)
+	log.Printf("--%s--\n", password)
 
 	username = os.Getenv("USERNAME")
 	if username == "" {
