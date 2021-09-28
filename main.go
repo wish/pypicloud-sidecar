@@ -97,23 +97,16 @@ func main() {
 		log.Printf("%v", err)
 		os.Exit(1)
 	}
-	log.Printf("--%s--\n", username)
-	log.Printf("--%s--\n", password)
 
-	username = os.Getenv("USERNAME")
 	if username == "" {
-		log.Printf("USERNAME environment variable not set\n")
+		log.Printf("USERNAME not set\n")
 		os.Exit(1)
 	}
 
-	password = os.Getenv("PASSWORD")
 	if password == "" {
-		log.Printf("PASSWORD environment variable not set\n")
+		log.Printf("PASSWORD not set\n")
 		os.Exit(1)
 	}
-
-	log.Printf("--%s--\n", username)
-	log.Printf("--%s--\n", password)
 
 	if len(os.Args) < 3 {
 		log.Printf("Usage: sidecar <pypicloud-url> <rebuild-timeout>\n")
