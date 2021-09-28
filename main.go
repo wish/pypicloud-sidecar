@@ -78,7 +78,7 @@ func readVaultData() {
 	log.Println("Successfully opened secrets.json")
 	defer jsonFile.Close()
 	b, err := ioutil.ReadAll(jsonFile)
-	log.Println(b)
+	log.Println(string(b))
 }
 
 func main() {
@@ -96,8 +96,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Println(username)
-	log.Println(password)
+	log.Printf("--%s--\n", username)
+	log.Printf("--%s--\n", password)
 
 	if len(os.Args) < 3 {
 		log.Printf("Usage: sidecar <pypicloud-url> <rebuild-timeout>\n")
