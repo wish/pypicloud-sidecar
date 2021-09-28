@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -68,7 +69,21 @@ func health(w http.ResponseWriter, _ *http.Request) {
 	io.WriteString(w, "OK\n")
 }
 
+func readVaultData() {
+	jsonFile, err := os.Open("/volume/vault/secrets.json")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println("Successfully opened secrets.json")
+	defer jsonFile.Close()
+	b, err := ioutil.ReadAll(jsonFile)
+	log.Println(b)
+}
+
 func main() {
+	readVaultData()
+
 	username = os.Getenv("USERNAME")
 	if username == "" {
 		log.Printf("USERNAME environment variable not set\n")
@@ -80,6 +95,9 @@ func main() {
 		log.Printf("PASSWORD environment variable not set\n")
 		os.Exit(1)
 	}
+
+	log.Println(username)
+	log.Println(password)
 
 	if len(os.Args) < 3 {
 		log.Printf("Usage: sidecar <pypicloud-url> <rebuild-timeout>\n")
